@@ -16,6 +16,9 @@ class Team:
     def setTeamLeader(self, team_leader: TeamLeader) -> None:
         self.team_leader = team_leader
 
+    def deleteTeamLeader(self) -> None:
+        self.team_leader = None
+
     def getProgrammers(self) -> list[Programmer]:
         return self.programmers
 

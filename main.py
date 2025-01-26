@@ -48,10 +48,18 @@ for team_leader in team_leaders:
             team.addProgrammer(programmer)
     teams.append(team)
 
+for team in teams:
+    if team.getTeamLeader().getTeamName() == "sldl4":
+        team.setProgrammers([])
+    if team.getTeamLeader().getTeamName() == "adg4":
+        team.setProgrammers([])
+
+print(teams.__getitem__(0).getTeamLeader().getTeamName())
+print("i" in teams.__getitem__(0).getTeamLeader().getMbti())
 #result = 0
 
 #for team in teams:
- #   print(team.getTeamLeader().getTeamName())
- #   print(team.getProgrammers().__len__())
- #   result = result + team.getProgrammers().__len__()
+    #print(team.getTeamLeader().getTeamName())
+    #print(team.getProgrammers().__len__())
+    #result = result + team.getProgrammers().__len__()
 #print(result)
