@@ -1,8 +1,9 @@
 import pandas as pd
-from dask.array import empty
 from pyasn1_modules.rfc8017 import emptyString
 
+
 from users.User import User
+from users.team import Team
 from users.team_leader import TeamLeader
 from users.programmer import Programmer
 
@@ -13,6 +14,7 @@ programmer_data = pd.read_excel(programmer_file_path, engine='openpyxl')
 
 team_leaders = []
 programmers = []
+teams = []
 
 for index, row in team_leader_data.iterrows():
     if row["Carica qui i tuoi risultati"] is not emptyString:
@@ -20,7 +22,7 @@ for index, row in team_leader_data.iterrows():
         project_name = row["Nome del progetto"]
         sex = row["Sesso alla nascita"]
         mbti = row["In quale tipo di personalità ricadi?"]
-        team_leader = TeamLeader(team_name, project_name, sex, mbti)
+        team_leader = TeamLeader(team_name.lower(), project_name.lower(), sex.lower(), mbti.lower())
         team_leaders.append(team_leader)
 
 for index, row in programmer_data.iterrows():
@@ -29,10 +31,27 @@ for index, row in programmer_data.iterrows():
         project_name = row["Nome del progetto"]
         sex = row["Sesso alla nascita"]
         mbti = row["In quale tipo di personalità ricadi?"]
-        programmer = Programmer(team_name, project_name, sex, mbti)
+        programmer = Programmer(team_name.lower(), project_name.lower(), sex.lower(), mbti.lower())
         programmers.append(programmer)
 
-print(team_leaders)
-print(programmers)
+print(programmers.__len__())
+print(team_leaders.__len__())
 
+for team_leader in team_leaders:
+    team = Team(team_leader)
+    l_team_name = team_leader.getTeamName()
+    l_project_name = team_leader.getProjectName()
+    for programmer in programmers:
+        p_team_name = programmer.getTeamName()
+        p_project_name = programmer.getProjectName()
+        if(p_team_name == l_team_name) or (p_project_name == l_project_name):
+            team.addProgrammer(programmer)
+    teams.append(team)
 
+#result = 0
+
+#for team in teams:
+ #   print(team.getTeamLeader().getTeamName())
+ #   print(team.getProgrammers().__len__())
+ #   result = result + team.getProgrammers().__len__()
+#print(result)

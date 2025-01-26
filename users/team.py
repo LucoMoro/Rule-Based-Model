@@ -3,7 +3,7 @@ from users.team_leader import TeamLeader
 
 
 class Team:
-    def __init__(self, team_leader: TeamLeader, programmers: list[Programmer] = None):
+    def __init__(self, team_leader: TeamLeader = None, programmers: list[Programmer] = None):
         self.team_leader = team_leader
         if programmers is not None:
             self.programmers = programmers

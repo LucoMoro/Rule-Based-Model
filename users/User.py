@@ -29,3 +29,6 @@ class User:
 
     def setMbti(self, mbti) -> None:
         self.mbti = mbti
+
+    def __repr__(self):
+        return f"TeamLeader(team={self.team_name}, project={self.project_name})"
