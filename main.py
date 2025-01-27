@@ -1,7 +1,8 @@
 import pandas as pd
 from pyasn1_modules.rfc8017 import emptyString
 
-
+from model.programmer_model import ProgrammerModel
+from model.team_leader_model import TeamLeaderModel
 from users.User import User
 from users.team import Team
 from users.team_leader import TeamLeader
@@ -54,9 +55,41 @@ for team in teams:
     if team.getTeamLeader().getTeamName() == "adg4":
         team.setProgrammers([])
 
-print(teams.__getitem__(0).getTeamLeader().getTeamName())
-print("i" in teams.__getitem__(0).getTeamLeader().getMbti())
-#result = 0
+#print(teams.__getitem__(0).getTeamLeader().getTeamName())
+#print("i" in teams.__getitem__(0).getTeamLeader().getMbti())
+result = 0
+
+effective_team_leaders = []
+effective_programmers = []
+
+for team in teams:
+    team_leader_model = TeamLeaderModel(team)
+    effectiveness = team_leader_model.simulate_model()
+    if effectiveness == 1:
+        effective_team_leaders.append(team.getTeamLeader())
+
+for effective_team_leader in effective_team_leaders:
+    print(effective_team_leader.getTeamName())
+
+for team in teams:
+    programmer_model = ProgrammerModel(team)
+    effectiveness_sum = 0
+    if (team.getTeamLeader().getTeamName() == "sldl4") or (team.getTeamLeader().getTeamName() == "adg4"):
+        print("The team has no members")
+    else:
+        for programmer in team.getProgrammers():
+            effectiveness = programmer_model.simulate_model(programmer)
+            effectiveness_sum = effectiveness_sum + effectiveness
+        if effectiveness_sum == team.getProgrammers().__len__():
+            effective_programmers.append(team.getProgrammers())
+
+if not effective_programmers:
+    print("List is empty")
+else:
+    for effective_programmer in effective_programmers:
+        print(effective_programmer)
+
+
 
 #for team in teams:
     #print(team.getTeamLeader().getTeamName())

@@ -126,3 +126,12 @@ class ProgrammerModel:
                 return 2
         else:
             return 2
+
+    def simulate_model(self, programmer: Programmer) -> int:
+        if (self.rule4(programmer) == 0) or (self.rule5(programmer) == 0) or (self.rule6(programmer) == 0) or (self.rule7(programmer) == 0) or (self.rule8(programmer) == 0) or (self.rule10(programmer) == 0):
+            return 0
+        if (self.rule1(programmer) == 1) or (self.rule2(programmer) == 1) or (self.rule3(programmer) == 1) or (self.rule9(programmer) == 1):
+            return 1
+        else:
+            return 0
+

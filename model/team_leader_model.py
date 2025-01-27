@@ -134,3 +134,12 @@ class TeamLeaderModel:
                 return 2
         else:
             return 2
+
+    def simulate_model(self) -> int:
+        team_leader = self.team.getTeamLeader()
+        if (self.rule4(team_leader) == 0) or (self.rule7(team_leader) == 0) or (self.rule9(team_leader) == 0) or (self.rule10(team_leader) == 0) or (self.rule11(team_leader) == 0) or (self.rule12(team_leader) == 0):
+            return 0
+        if (self.rule1(team_leader) == 1) or (self.rule2(team_leader) == 1) or (self.rule3(team_leader) == 1) or (self.rule5(team_leader) == 1) or (self.rule6(team_leader) == 1) or (self.rule8(team_leader) == 1):
+            return 1
+        else:
+            return 0
