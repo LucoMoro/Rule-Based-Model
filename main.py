@@ -64,9 +64,12 @@ effective_programmers = []
 
 for team in teams:
     team_leader_model = TeamLeaderModel(team)
-    effectiveness = team_leader_model.simulate_model()
-    if effectiveness == 1:
-        effective_team_leaders.append(team.getTeamLeader())
+    if (team.getTeamLeader().getTeamName() == "c05") or (team.getTeamLeader().getTeamName() == "nc31") or (team.getTeamLeader().getTeamName() == "nc04") or (team.getTeamLeader().getTeamName() == "nc03") or (team.getTeamLeader().getTeamName() == "nc13") or (team.getTeamLeader().getTeamName() == "nc30") or (team.getTeamLeader().getTeamName() == "nc02"):
+        print("The team has no leaders")
+    else:
+        effectiveness = team_leader_model.simulate_model()
+        if effectiveness == 1:
+            effective_team_leaders.append(team.getTeamLeader())
 
 for effective_team_leader in effective_team_leaders:
     print(effective_team_leader.getTeamName())
