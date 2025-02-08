@@ -64,13 +64,14 @@ effective_programmers = []
 
 for team in teams:
     team_leader_model = TeamLeaderModel(team)
-    if (team.getTeamLeader().getTeamName() == "c05") or (team.getTeamLeader().getTeamName() == "nc31") or (team.getTeamLeader().getTeamName() == "nc04") or (team.getTeamLeader().getTeamName() == "nc03") or (team.getTeamLeader().getTeamName() == "nc13") or (team.getTeamLeader().getTeamName() == "nc30") or (team.getTeamLeader().getTeamName() == "nc02"):
-        print("The team has no leaders")
+    if (team.getTeamLeader().getTeamName() == "c05") or (team.getTeamLeader().getTeamName() == "nc31") or (team.getTeamLeader().getTeamName() == "nc04") or (team.getTeamLeader().getTeamName() == "nc03") or (team.getTeamLeader().getTeamName() == "nc13") or (team.getTeamLeader().getTeamName() == "nc30") or (team.getTeamLeader().getTeamName() == "nc02") or (team.getTeamLeader().getTeamName() == "nc26") or (team.getTeamLeader().getTeamName() == "nc21"):
+        print(f"The team {team.getTeamLeader().getTeamName()} has no leaders")
     else:
         effectiveness = team_leader_model.simulate_model()
         if effectiveness == 1:
             effective_team_leaders.append(team.getTeamLeader())
 
+print("------------- Effective team leaders ---------------")
 for effective_team_leader in effective_team_leaders:
     print(effective_team_leader.getTeamName())
 
@@ -78,7 +79,7 @@ for team in teams:
     programmer_model = ProgrammerModel(team)
     effectiveness_sum = 0
     if (team.getTeamLeader().getTeamName() == "sldl4") or (team.getTeamLeader().getTeamName() == "adg4"):
-        print("The team has no members")
+        print(f"The team  {team.getTeamLeader().getTeamName()} has no members")
     else:
         for programmer in team.getProgrammers():
             effectiveness = programmer_model.simulate_model(programmer)
@@ -86,6 +87,7 @@ for team in teams:
         if effectiveness_sum == team.getProgrammers().__len__():
             effective_programmers.append(team.getProgrammers())
 
+print("--------------- Effective programmers --------------")
 if not effective_programmers:
     print("List is empty")
 else:
