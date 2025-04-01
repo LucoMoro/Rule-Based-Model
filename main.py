@@ -38,6 +38,29 @@ for index, row in programmer_data.iterrows():
 print(programmers.__len__())
 print(team_leaders.__len__())
 
+print("------------- Sex and gender ---------------")
+tm_males = 0
+tm_females = 0
+for team_leader in team_leaders:
+    if team_leader.getSex() == "maschio":
+        tm_males = tm_males + 1
+    if team_leader.getSex() == "femmina":
+        tm_females = tm_females + 1
+print(f" tm males {tm_males}")
+print(f" tm females {tm_females}")
+
+p_males = 0
+p_females = 0
+for programmer in programmers:
+    if programmer.getSex() == "maschio":
+        p_males = p_males + 1
+    if programmer.getSex() == "femmina":
+        p_females = p_females + 1
+print(f" p males {p_males}")
+print(f" p females {p_females}")
+
+
+
 for team_leader in team_leaders:
     team = Team(team_leader)
     l_team_name = team_leader.getTeamName()
@@ -55,8 +78,6 @@ for team in teams:
     if team.getTeamLeader().getTeamName() == "adg4":
         team.setProgrammers([])
 
-#print(teams.__getitem__(0).getTeamLeader().getTeamName())
-#print("i" in teams.__getitem__(0).getTeamLeader().getMbti())
 result = 0
 
 effective_team_leaders = []
@@ -64,7 +85,10 @@ effective_programmers = []
 
 for team in teams:
     team_leader_model = TeamLeaderModel(team)
-    if (team.getTeamLeader().getTeamName() == "c05") or (team.getTeamLeader().getTeamName() == "nc31") or (team.getTeamLeader().getTeamName() == "nc04") or (team.getTeamLeader().getTeamName() == "nc03") or (team.getTeamLeader().getTeamName() == "nc13") or (team.getTeamLeader().getTeamName() == "nc30") or (team.getTeamLeader().getTeamName() == "nc02") or (team.getTeamLeader().getTeamName() == "nc26") or (team.getTeamLeader().getTeamName() == "nc21"):
+    if ((team.getTeamLeader().getTeamName() == "c05") or (team.getTeamLeader().getTeamName() == "nc31") or (team.getTeamLeader().getTeamName() == "nc04") or
+            (team.getTeamLeader().getTeamName() == "nc03") or (team.getTeamLeader().getTeamName() == "nc13") or (team.getTeamLeader().getTeamName() == "nc30") or
+            (team.getTeamLeader().getTeamName() == "nc02") or (team.getTeamLeader().getTeamName() == "nc26") or (team.getTeamLeader().getTeamName() == "nc21") or
+            ()):
         print(f"The team {team.getTeamLeader().getTeamName()} has no leaders")
     else:
         effectiveness = team_leader_model.simulate_model()
@@ -83,21 +107,59 @@ for team in teams:
     else:
         for programmer in team.getProgrammers():
             effectiveness = programmer_model.simulate_model(programmer)
+            #if effectiveness == 1:
+                #effective_programmers.append(programmer)
             effectiveness_sum = effectiveness_sum + effectiveness
-        if effectiveness_sum == team.getProgrammers().__len__():
+        if effectiveness_sum == team.getProgrammers().__len__()-1:
             effective_programmers.append(team.getProgrammers())
 
 print("--------------- Effective programmers --------------")
+males = 0
+females = 0
 if not effective_programmers:
     print("List is empty")
 else:
     for effective_programmer in effective_programmers:
         print(effective_programmer)
+        #if effective_programmer.getSex() == "maschio":
+            #males = males + 1
+        #if effective_programmer.getSex() == "femmina":
+            #females = females + 1
 
+print(effective_programmers.__len__())
+print(f"males {males}")
+print(f"females {females}")
 
+print("--------------- Teams information --------------")
+members2 = []
+members3 = []
+members4 = []
+members5 = []
 
-#for team in teams:
-    #print(team.getTeamLeader().getTeamName())
-    #print(team.getProgrammers().__len__())
-    #result = result + team.getProgrammers().__len__()
-#print(result)
+for team in teams:
+    programmers = team.getProgrammers()
+    leader = team.getTeamLeader()
+    if (team.getTeamLeader().getTeamName() != "sldl4") or (team.getTeamLeader().getTeamName() != "adg4"):
+        if leader.getSex() != "false":
+            if programmers.__len__() + 1 == 2:
+                members2.append(leader.getTeamName())
+            if programmers.__len__() + 1 == 3:
+                members3.append(leader.getTeamName())
+            if programmers.__len__() + 1 == 4:
+                members4.append(leader.getTeamName())
+            if programmers.__len__() + 1 == 5:
+                members5.append(leader.getTeamName())
+        else:
+            if programmers.__len__() == 2:
+                members2.append(leader.getTeamName())
+            if programmers.__len__() == 3:
+                members3.append(leader.getTeamName())
+            if programmers.__len__() == 4:
+                members4.append(leader.getTeamName())
+            if programmers.__len__() == 5:
+                members5.append(leader.getTeamName())
+
+print(f"members2 {members2}")
+print(f"members2 {members3}")
+print(f"members4 {members4}")
+print(f"members5 {members5}")
