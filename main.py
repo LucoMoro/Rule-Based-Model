@@ -1,165 +1,163 @@
 import pandas as pd
 from pyasn1_modules.rfc8017 import emptyString
-
 from model.programmer_model import ProgrammerModel
 from model.team_leader_model import TeamLeaderModel
-from users.User import User
-from users.team import Team
 from users.team_leader import TeamLeader
 from users.programmer import Programmer
-
-team_leader_file_path = "MBTI - Team Leader (Risposte).xlsx"
-programmer_file_path = "MBTI - Programmer (Risposte).xlsx"
-team_leader_data = pd.read_excel(team_leader_file_path, engine='openpyxl')
-programmer_data = pd.read_excel(programmer_file_path, engine='openpyxl')
-
-team_leaders = []
-programmers = []
-teams = []
-
-for index, row in team_leader_data.iterrows():
-    if row["Carica qui i tuoi risultati"] is not emptyString:
-        team_name = row["Nome del team"]
-        project_name = row["Nome del progetto"]
-        sex = row["Sesso alla nascita"]
-        mbti = row["In quale tipo di personalità ricadi?"]
-        team_leader = TeamLeader(team_name.lower(), project_name.lower(), sex.lower(), mbti.lower())
-        team_leaders.append(team_leader)
-
-for index, row in programmer_data.iterrows():
-    if row["Carica qui i tuoi risultati"] is not emptyString:
-        team_name = row["Nome del team"]
-        project_name = row["Nome del progetto"]
-        sex = row["Sesso alla nascita"]
-        mbti = row["In quale tipo di personalità ricadi?"]
-        programmer = Programmer(team_name.lower(), project_name.lower(), sex.lower(), mbti.lower())
-        programmers.append(programmer)
-
-print(programmers.__len__())
-print(team_leaders.__len__())
-
-print("------------- Sex and gender ---------------")
-tm_males = 0
-tm_females = 0
-for team_leader in team_leaders:
-    if team_leader.getSex() == "maschio":
-        tm_males = tm_males + 1
-    if team_leader.getSex() == "femmina":
-        tm_females = tm_females + 1
-print(f" tm males {tm_males}")
-print(f" tm females {tm_females}")
-
-p_males = 0
-p_females = 0
-for programmer in programmers:
-    if programmer.getSex() == "maschio":
-        p_males = p_males + 1
-    if programmer.getSex() == "femmina":
-        p_females = p_females + 1
-print(f" p males {p_males}")
-print(f" p females {p_females}")
+from users.team import Team
 
 
+class TeamDataProcessor:
+    def __init__(self, team_leader_file: str, programmer_file: str):
+        self.team_leader_file = team_leader_file
+        self.programmer_file = programmer_file
+        self.team_leaders = []
+        self.programmers = []
+        self.teams = []
+        self.effective_team_leaders = []
+        self.effective_programmers = []
 
-for team_leader in team_leaders:
-    team = Team(team_leader)
-    l_team_name = team_leader.getTeamName()
-    l_project_name = team_leader.getProjectName()
-    for programmer in programmers:
-        p_team_name = programmer.getTeamName()
-        p_project_name = programmer.getProjectName()
-        if(p_team_name == l_team_name) or (p_project_name == l_project_name):
-            team.addProgrammer(programmer)
-    teams.append(team)
+    def load_data(self):
+        team_leader_data = pd.read_excel(self.team_leader_file, engine='openpyxl')
+        programmer_data = pd.read_excel(self.programmer_file, engine='openpyxl')
 
-for team in teams:
-    if team.getTeamLeader().getTeamName() == "sldl4":
-        team.setProgrammers([])
-    if team.getTeamLeader().getTeamName() == "adg4":
-        team.setProgrammers([])
+        self._process_team_leaders(team_leader_data)
+        self._process_programmers(programmer_data)
+        self._assign_teams()
+        self._evaluate_effective_leaders()
+        self._evaluate_effective_programmers()
 
-result = 0
+    def _process_team_leaders(self, data):
+        for _, row in data.iterrows():
+            if row["Carica qui i tuoi risultati"] is not emptyString:
+                team_leader = TeamLeader(
+                    row["Nome del team"].lower(),
+                    row["Nome del progetto"].lower(),
+                    row["Sesso alla nascita"].lower(),
+                    row["In quale tipo di personalità ricadi?"].lower()
+                )
+                self.team_leaders.append(team_leader)
 
-effective_team_leaders = []
-effective_programmers = []
+    def _process_programmers(self, data):
+        for _, row in data.iterrows():
+            if row["Carica qui i tuoi risultati"] is not emptyString:
+                programmer = Programmer(
+                    row["Nome del team"].lower(),
+                    row["Nome del progetto"].lower(),
+                    row["Sesso alla nascita"].lower(),
+                    row["In quale tipo di personalità ricadi?"].lower()
+                )
+                self.programmers.append(programmer)
 
-for team in teams:
-    team_leader_model = TeamLeaderModel(team)
-    if ((team.getTeamLeader().getTeamName() == "c05") or (team.getTeamLeader().getTeamName() == "nc31") or (team.getTeamLeader().getTeamName() == "nc04") or
-            (team.getTeamLeader().getTeamName() == "nc03") or (team.getTeamLeader().getTeamName() == "nc13") or (team.getTeamLeader().getTeamName() == "nc30") or
-            (team.getTeamLeader().getTeamName() == "nc02") or (team.getTeamLeader().getTeamName() == "nc26") or (team.getTeamLeader().getTeamName() == "nc21") or
-            ()):
-        print(f"The team {team.getTeamLeader().getTeamName()} has no leaders")
-    else:
-        effectiveness = team_leader_model.simulate_model()
-        if effectiveness == 1:
-            effective_team_leaders.append(team.getTeamLeader())
+    def _assign_teams(self):
+        for team_leader in self.team_leaders:
+            team = Team(team_leader)
+            l_team_name = team_leader.getTeamName()
+            l_project_name = team_leader.getProjectName()
+            for programmer in self.programmers:
+                p_team_name = programmer.getTeamName()
+                p_project_name = programmer.getProjectName()
+                if p_team_name == l_team_name or p_project_name == l_project_name:
+                    team.addProgrammer(programmer)
+            self.teams.append(team)
 
-print("------------- Effective team leaders ---------------")
-for effective_team_leader in effective_team_leaders:
-    print(effective_team_leader.getTeamName())
+        for team in self.teams:
+            if team.getTeamLeader().getTeamName() in ["sldl4", "adg4"]:
+                team.setProgrammers([])
 
-for team in teams:
-    programmer_model = ProgrammerModel(team)
-    effectiveness_sum = 0
-    if (team.getTeamLeader().getTeamName() == "sldl4") or (team.getTeamLeader().getTeamName() == "adg4"):
-        print(f"The team  {team.getTeamLeader().getTeamName()} has no members")
-    else:
-        for programmer in team.getProgrammers():
-            effectiveness = programmer_model.simulate_model(programmer)
-            #if effectiveness == 1:
-                #effective_programmers.append(programmer)
-            effectiveness_sum = effectiveness_sum + effectiveness
-        if effectiveness_sum == team.getProgrammers().__len__()-1:
-            effective_programmers.append(team.getProgrammers())
+    def _evaluate_effective_leaders(self):
+        excluded_teams = {"c05", "nc31", "nc04", "nc03", "nc13", "nc30", "nc02", "nc26", "nc21"}
+        for team in self.teams:
+            team_leader_name = team.getTeamLeader().getTeamName()
+            if team_leader_name in excluded_teams:
+                print(f"[INFO] The team '{team_leader_name}' has no leaders.")
+            else:
+                team_leader_model = TeamLeaderModel(team)
+                if team_leader_model.simulate_model() == 1:
+                    self.effective_team_leaders.append(team.getTeamLeader())
 
-print("--------------- Effective programmers --------------")
-males = 0
-females = 0
-if not effective_programmers:
-    print("List is empty")
-else:
-    for effective_programmer in effective_programmers:
-        print(effective_programmer)
-        #if effective_programmer.getSex() == "maschio":
-            #males = males + 1
-        #if effective_programmer.getSex() == "femmina":
-            #females = females + 1
+    def _evaluate_effective_programmers(self):
+        for team in self.teams:
+            programmer_model = ProgrammerModel(team)
+            effectiveness_sum = 0
+            if team.getTeamLeader().getTeamName() in ["sldl4", "adg4"]:
+                print(f"[INFO] The team '{team.getTeamLeader().getTeamName()}' has no members.")
+            else:
+                for programmer in team.getProgrammers():
+                    effectiveness = programmer_model.simulate_model(programmer)
+                    effectiveness_sum += effectiveness
+                if effectiveness_sum == len(team.getProgrammers()) - 1:
+                    self.effective_programmers.extend(team.getProgrammers())
 
-print(effective_programmers.__len__())
-print(f"males {males}")
-print(f"females {females}")
+    def print_summary(self):
+        print("\n========== TEAM SUMMARY ==========")
+        print(f"Total Programmers: {len(self.programmers)}")
+        print(f"Total Team Leaders: {len(self.team_leaders)}")
+        self._print_gender_distribution()
+        self._print_effective_leaders()
+        self._print_effective_programmers()
+        self._print_team_information()
 
-print("--------------- Teams information --------------")
-members2 = []
-members3 = []
-members4 = []
-members5 = []
+    def _print_gender_distribution(self):
+        print("\n========== GENDER DISTRIBUTION ==========")
+        tm_males = sum(1 for tl in self.team_leaders if tl.getSex() == "maschio")
+        tm_females = sum(1 for tl in self.team_leaders if tl.getSex() == "femmina")
+        print(f"Total Male Team Leaders: {tm_males}")
+        print(f"Total Female Team Leaders: {tm_females}")
 
-for team in teams:
-    programmers = team.getProgrammers()
-    leader = team.getTeamLeader()
-    if (team.getTeamLeader().getTeamName() != "sldl4") or (team.getTeamLeader().getTeamName() != "adg4"):
-        if leader.getSex() != "false":
-            if programmers.__len__() + 1 == 2:
-                members2.append(leader.getTeamName())
-            if programmers.__len__() + 1 == 3:
-                members3.append(leader.getTeamName())
-            if programmers.__len__() + 1 == 4:
-                members4.append(leader.getTeamName())
-            if programmers.__len__() + 1 == 5:
-                members5.append(leader.getTeamName())
+        p_males = sum(1 for p in self.programmers if p.getSex() == "maschio")
+        p_females = sum(1 for p in self.programmers if p.getSex() == "femmina")
+        print(f"Total Male Programmers: {p_males}")
+        print(f"Total Female Programmers: {p_females}")
+
+    def _print_effective_leaders(self):
+        print("\n========== EFFECTIVE TEAM LEADERS ==========")
+        if not self.effective_team_leaders:
+            print("No effective team leaders found.")
         else:
-            if programmers.__len__() == 2:
-                members2.append(leader.getTeamName())
-            if programmers.__len__() == 3:
-                members3.append(leader.getTeamName())
-            if programmers.__len__() == 4:
-                members4.append(leader.getTeamName())
-            if programmers.__len__() == 5:
-                members5.append(leader.getTeamName())
+            for leader in self.effective_team_leaders:
+                print(f" - {leader.getTeamName()}")
 
-print(f"members2 {members2}")
-print(f"members2 {members3}")
-print(f"members4 {members4}")
-print(f"members5 {members5}")
+    def _print_effective_programmers(self):
+        print("\n========== EFFECTIVE PROGRAMMERS ==========")
+        males = 0
+        females = 0
+        if not self.effective_programmers:
+            print("No effective programmers found.")
+        else:
+            for programmer in self.effective_programmers:
+                if programmer.getSex() == "maschio":
+                    males = males + 1
+                if programmer.getSex() == "femmina":
+                    females = females + 1
+                print(f" - {programmer}")
+        print(f"Total Effective Programmers: {len(self.effective_programmers)}")
+        print(f"Total Effective Male Programmers: {males}")
+        print(f"Total Effective Female Programmers: {females}")
+
+    def _print_team_information(self):
+        print("\n========== TEAM SIZE DISTRIBUTION ==========")
+        members2, members3, members4, members5 = [], [], [], []
+        for team in self.teams:
+            programmers = team.getProgrammers()
+            leader = team.getTeamLeader()
+            if leader.getTeamName() not in ["sldl4", "adg4"]:
+                team_size = len(programmers) + (1 if leader.getSex() != "false" else 0)
+                if team_size == 2:
+                    members2.append(leader.getTeamName())
+                elif team_size == 3:
+                    members3.append(leader.getTeamName())
+                elif team_size == 4:
+                    members4.append(leader.getTeamName())
+                elif team_size == 5:
+                    members5.append(leader.getTeamName())
+        print(f"Teams with 2 members: {members2}")
+        print(f"Teams with 3 members: {members3}")
+        print(f"Teams with 4 members: {members4}")
+        print(f"Teams with 5 members: {members5}")
+
+
+if __name__ == "__main__":
+    processor = TeamDataProcessor("MBTI - Team Leader (Risposte).xlsx", "MBTI - Programmer (Risposte).xlsx")
+    processor.load_data()
+    processor.print_summary()
