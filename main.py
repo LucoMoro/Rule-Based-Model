@@ -17,6 +17,7 @@ class TeamDataProcessor:
         self.effective_team_leaders = []
         self.effective_programmers = []
         self.members1 = []
+        self.excluded_teams = {"c05", "nc31", "nc04", "nc03", "nc13", "nc30", "nc02", "nc26", "nc21", "nc15", "nc34", "nc20", "nc22", "nc1", "nc10", "nc12", "nc09", "nc32", "nc07"}
 
     def load_data(self):
         team_leader_data = pd.read_excel(self.team_leader_file, engine='openpyxl')
@@ -67,10 +68,9 @@ class TeamDataProcessor:
                 team.setProgrammers([])
 
     def _evaluate_effective_leaders(self):
-        excluded_teams = {"c05", "nc31", "nc04", "nc03", "nc13", "nc30", "nc02", "nc26", "nc21", "nc15", "nc34", "nc20", "nc22", "nc1", "nc10"}
         for team in self.teams:
             team_leader_name = team.getTeamLeader().getTeamName()
-            if team_leader_name in excluded_teams:
+            if team_leader_name in self.excluded_teams:
                 print(f"[INFO] The team '{team_leader_name}' has no leaders.")
             else:
                 team_leader_model = TeamLeaderModel(team)
@@ -161,14 +161,23 @@ class TeamDataProcessor:
         print(f"Teams with 5 members: {members5}")
 
     def get_programmer_effectiveness_matrix(self):
+        row = ""
         matrix = []
         for team in self.teams:
-            team_row = []
+            leader_row = []
+            if team.getTeamLeader().getTeamName() not in self.excluded_teams:
+                leader_model = TeamLeaderModel(team)
+                leader_result = leader_model.simulate_model()
+                leader_row.append(leader_result)
+            else:
+                leader_row.append("-1")
+            programmer_row = []
             programmer_model = ProgrammerModel(team)
             for programmer in team.getProgrammers():
                 effectiveness = programmer_model.simulate_model(programmer)
-                team_row.append(effectiveness)
-            matrix.append(team_row)
+                programmer_row.append(effectiveness)
+            row = f"{leader_row} & {programmer_row}"
+            matrix.append(row)
         return matrix
 
 
