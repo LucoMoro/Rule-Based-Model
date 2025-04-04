@@ -6,6 +6,10 @@ from users.team_leader import TeamLeader
 from users.programmer import Programmer
 from users.team import Team
 
+from collections import Counter
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 
 class TeamDataProcessor:
     def __init__(self, team_leader_file: str, programmer_file: str):
@@ -36,7 +40,8 @@ class TeamDataProcessor:
                     row["Nome del team"].lower(),
                     row["Nome del progetto"].lower(),
                     row["Sesso alla nascita"].lower(),
-                    row["In quale tipo di personalità ricadi?"].lower()
+                    row["In quale tipo di personalità ricadi?"].lower(),
+                    30
                 )
                 self.team_leaders.append(team_leader)
 
@@ -47,7 +52,8 @@ class TeamDataProcessor:
                     row["Nome del team"].lower(),
                     row["Nome del progetto"].lower(),
                     row["Sesso alla nascita"].lower(),
-                    row["In quale tipo di personalità ricadi?"].lower()
+                    row["In quale tipo di personalità ricadi?"].lower(),
+                    30
                 )
                 self.programmers.append(programmer)
 
@@ -180,6 +186,94 @@ class TeamDataProcessor:
             matrix.append(row)
         return matrix
 
+    def analyze_mbti_team_correlation(self, normalize=False, plot=True):
+        team_records = []
+
+        for team in self.teams:
+            programmers = team.getProgrammers()
+            mbti_list = [p.getMbti() for p in programmers]
+            grade = team.getTeamLeader().getGrade()
+            team_name = str(team.getTeamLeader().getTeamName())  # or team.getName() if available
+
+            mbti_count = dict(Counter(mbti_list))
+            mbti_count['Grade'] = grade
+            mbti_count['Team'] = team_name
+
+            team_records.append(mbti_count)
+
+        # Create DataFrame from records
+        df = pd.DataFrame(team_records)
+
+        # Ensure Grade is numeric
+        df['Grade'] = pd.to_numeric(df['Grade'], errors='coerce')
+
+        # Set Team as index
+        df.set_index('Team', inplace=True)
+
+        # Fill any missing MBTI counts with 0
+        df.fillna(0, inplace=True)
+
+        # Get MBTI columns only
+        mbti_cols = df.columns.difference(['Grade'])
+
+        # Normalize if requested
+        if normalize:
+            df[mbti_cols] = df[mbti_cols].div(df[mbti_cols].sum(axis=1), axis=0)
+
+        # Correlation
+        correlation = df[mbti_cols.tolist() + ['Grade']].corr()
+
+        # Check that Grade is present and correlations exist
+        if plot and 'Grade' in correlation.columns:
+            plt.figure(figsize=(12, 6))
+            sns.heatmap(correlation[['Grade']].drop('Grade', errors='ignore').sort_values(by='Grade', ascending=False),
+                        annot=True, cmap='viridis', vmin=-1, vmax=1)
+            plt.title('Correlation between MBTI Composition and Team Grade')
+            plt.tight_layout()
+            plt.show()
+
+        print("Correlation Matrix:\n", correlation)
+        print("Columns in Correlation Matrix:", correlation.columns)
+
+        print("Grade Data Type:", df['Grade'].dtype)
+        print("Are there NaNs in Grade?", df['Grade'].isna().sum())
+        print("Unique Grade Values:", df['Grade'].unique())
+
+        return correlation
+
+    def plot_mbti_frequencies(self):
+        """
+        Plot the overall frequency of MBTI types from a list of team objects.
+        """
+        mbti_list = []
+
+        for team in self.teams:
+            programmers = team.getProgrammers()
+            mbti_list.extend([p.getMbti() for p in programmers])
+
+        # Count MBTI occurrences
+        mbti_counts = Counter(mbti_list)
+
+        # Convert to DataFrame
+        mbti_df = pd.DataFrame.from_dict(mbti_counts, orient='index', columns=['Count'])
+        mbti_df = mbti_df.sort_values(by='Count', ascending=False)
+
+        # Plot
+        plt.figure(figsize=(10, 5))
+        sns.barplot(
+            x=mbti_df.index,
+            y=mbti_df['Count'],
+            hue=mbti_df.index,  # use hue to assign colors
+            dodge=False,  # don't split bars
+            palette='viridis',
+            legend=False  # we don’t need a separate legend for MBTI types
+        )
+        plt.title("MBTI Personality Distribution Across All Teams")
+        plt.xlabel("MBTI Type")
+        plt.ylabel("Count")
+        plt.tight_layout()
+        plt.show()
+
 
 if __name__ == "__main__":
     processor = TeamDataProcessor("MBTI - Team Leader (Risposte).xlsx", "MBTI - Programmer (Risposte).xlsx")
@@ -190,5 +284,9 @@ if __name__ == "__main__":
     print("\n========== PROGRAMMER EFFECTIVENESS MATRIX ==========")
     for i, row in enumerate(matrix):
         print(f"Team {processor.teams[i].getTeamLeader().getTeamName()}: {row}")
+
+    processor.analyze_mbti_team_correlation()
+
+    processor.plot_mbti_frequencies()
 
 
