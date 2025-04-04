@@ -16,6 +16,7 @@ class TeamDataProcessor:
         self.teams = []
         self.effective_team_leaders = []
         self.effective_programmers = []
+        self.members1 = []
 
     def load_data(self):
         team_leader_data = pd.read_excel(self.team_leader_file, engine='openpyxl')
@@ -66,7 +67,7 @@ class TeamDataProcessor:
                 team.setProgrammers([])
 
     def _evaluate_effective_leaders(self):
-        excluded_teams = {"c05", "nc31", "nc04", "nc03", "nc13", "nc30", "nc02", "nc26", "nc21"}
+        excluded_teams = {"c05", "nc31", "nc04", "nc03", "nc13", "nc30", "nc02", "nc26", "nc21", "nc15", "nc34", "nc20", "nc22", "nc1", "nc10"}
         for team in self.teams:
             team_leader_name = team.getTeamLeader().getTeamName()
             if team_leader_name in excluded_teams:
@@ -141,23 +142,44 @@ class TeamDataProcessor:
         for team in self.teams:
             programmers = team.getProgrammers()
             leader = team.getTeamLeader()
-            if leader.getTeamName() not in ["sldl4", "adg4"]:
-                team_size = len(programmers) + (1 if leader.getSex() != "false" else 0)
-                if team_size == 2:
-                    members2.append(leader.getTeamName())
-                elif team_size == 3:
-                    members3.append(leader.getTeamName())
-                elif team_size == 4:
-                    members4.append(leader.getTeamName())
-                elif team_size == 5:
-                    members5.append(leader.getTeamName())
+            #if leader.getTeamName() not in ["sldl4", "adg4"]:
+            team_size = len(programmers) + (1 if leader.getSex() != "false" else 0)
+            if team_size == 1:
+                self.members1.append(leader.getTeamName())
+            if team_size == 2:
+                members2.append(leader.getTeamName())
+            elif team_size == 3:
+                members3.append(leader.getTeamName())
+            elif team_size == 4:
+                members4.append(leader.getTeamName())
+            elif team_size == 5:
+                members5.append(leader.getTeamName())
+        print(f"Teams with 1 members: {self.members1}")
         print(f"Teams with 2 members: {members2}")
         print(f"Teams with 3 members: {members3}")
         print(f"Teams with 4 members: {members4}")
         print(f"Teams with 5 members: {members5}")
+
+    def get_programmer_effectiveness_matrix(self):
+        matrix = []
+        for team in self.teams:
+            team_row = []
+            programmer_model = ProgrammerModel(team)
+            for programmer in team.getProgrammers():
+                effectiveness = programmer_model.simulate_model(programmer)
+                team_row.append(effectiveness)
+            matrix.append(team_row)
+        return matrix
 
 
 if __name__ == "__main__":
     processor = TeamDataProcessor("MBTI - Team Leader (Risposte).xlsx", "MBTI - Programmer (Risposte).xlsx")
     processor.load_data()
     processor.print_summary()
+
+    matrix = processor.get_programmer_effectiveness_matrix()
+    print("\n========== PROGRAMMER EFFECTIVENESS MATRIX ==========")
+    for i, row in enumerate(matrix):
+        print(f"Team {processor.teams[i].getTeamLeader().getTeamName()}: {row}")
+
+
